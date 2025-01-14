@@ -28,6 +28,10 @@ app.use( express.json() );
 app.use('/api/admin', require('./routes/admin'));
 app.use('/api/medico', require('./routes/medico'));
 
+// GESTION DE HISTORIAS CLINICAS
+app.use('/api/historias', require('./routes/historias'));
+
+
 /* app.use('*', (req, res) => {
     res.sendFile(path.join( __dirname, 'public/index.html' ));
 }); */
