@@ -27,6 +27,7 @@ app.use( express.json() );
 // GESTION DE USUARIOS
 app.use('/api/admin', require('./routes/admin'));
 app.use('/api/medico', require('./routes/medico'));
+app.use('/api/enfermeria', require('./routes/enfermeria'));
 
 // GESTION DE HISTORIAS CLINICAS
 app.use('/api/historias', require('./routes/historias'));
