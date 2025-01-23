@@ -13,12 +13,15 @@ const getHistoria = async (req, res) => {
                 if (results[0].count <= 0 || results[0].rol !== 'patient') {
                     return res.status(400).json({
                         ok: false,
-                        msg: 'Paciente no encontrado.'
+                        msg: 'Paciente no encontrado.',
                     });
                 }
 
                 dbConection().query(
-                    `SELECT u.nombres, p.cedula FROM pacientes p JOIN usuarios u ON p.cedula = u.cedula WHERE p.cedula = ?`,
+                    `SELECT u.nombres, p.cedula 
+                     FROM pacientes p 
+                     JOIN usuarios u ON p.cedula = u.cedula 
+                     WHERE p.cedula = ?`,
                     [patCed],
                     (error, patientResults) => {
                         if (error) throw error;
@@ -29,30 +32,30 @@ const getHistoria = async (req, res) => {
                         };
 
                         dbConection().query(
-                            `SELECT 
-                                id,
-                                archivo,
-                                DATE_FORMAT(fechacreacion, '%Y-%m-%d') AS fechacreacion,
-                                DATE_FORMAT(fecha_ult_mod, '%Y-%m-%d') AS fecha_ult_mod,
-                                nroforms,
-                                estado
-                             FROM historias_clinicas
-                             WHERE paciente = ?`,
+                            `SELECT
+                                hc.id,
+                                hc.unique_id,
+                                hc.archivo,
+                                DATE_FORMAT(hc.fechacreacion, '%Y-%m-%d') AS fechacreacion,
+                                DATE_FORMAT(hc.fecha_ult_mod, '%Y-%m-%d') AS fecha_ult_mod,
+                                hc.estado
+                             FROM historias_clinicas hc
+                             WHERE paciente = ?;`,
                             [patCed],
                             (error, historyResults) => {
                                 if (error) throw error;
 
                                 const histories = historyResults.map(history => ({
                                     id: history.id,
+                                    unique_id: history.unique_id,
                                     archivo: history.archivo,
                                     fechacreacion: history.fechacreacion,
                                     fecha_ult_mod: history.fecha_ult_mod,
-                                    nroforms: history.nroforms,
                                     estado: history.estado,
-                                    formularios: []
+                                    formularios: [],
                                 }));
 
-                                const historyIds = histories.map(h => h.id);
+                                const historyIds = histories.map(h => h.unique_id);
 
                                 if (historyIds.length > 0) {
                                     dbConection().query(
@@ -70,7 +73,7 @@ const getHistoria = async (req, res) => {
                                             if (error) throw error;
 
                                             formResults.forEach(form => {
-                                                const history = histories.find(h => h.id === form.historia_id);
+                                                const history = histories.find(h => h.unique_id === form.historia_id);
                                                 if (history) {
                                                     history.formularios.push({
                                                         nombre: form.nombre,
@@ -106,11 +109,10 @@ const getHistoria = async (req, res) => {
         console.error(error);
         res.status(500).json({
             ok: false,
-            msg: 'ERROR: ' + error
+            msg: 'ERROR: ' + error,
         });
     }
 };
-
 
 
 
@@ -124,7 +126,7 @@ const actualizarHistoria = async (req, res) => {
             dbConection().query(
                 `UPDATE historias_clinicas
                  SET archivo = ?, fechacreacion = ?, fecha_ult_mod = ?, nroforms = ?, estado = ?
-                 WHERE id = ?`,
+                 WHERE unique_id = ?;`,
                 [archivo, fechacreacion, fecha_ult_mod, nroforms, estado, historyId],
                 (error, results) => {
                     if (error) return reject(error);
@@ -190,8 +192,6 @@ const actualizarHistoria = async (req, res) => {
         });
     }
 };
-
-
 
 
 module.exports = {

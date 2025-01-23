@@ -66,23 +66,52 @@ const crearHistoria = async (req, res) => {
     const historia = new HistoryModel(req.body);
 
     try {
-        // Insertar la historia nueva
+        // Obtener el próximo id para el paciente
         dbConection().query(
-            `INSERT INTO historias_clinicas VALUES (null, ?, ?, ?, ?, ?, ?);`,
-            [historia.archivo, historia.fechacreacion, historia.fecha_ult_mod, historia.nroforms, historia.estado, historia.paciente],
+            `
+            SELECT IFNULL(MAX(id), 0) + 1 AS nextId
+            FROM historias_clinicas
+            WHERE paciente = ?;
+            `,
+            [historia.paciente],
             (error, results) => {
                 if (error) throw error;
 
-                const history_id = results.insertId;
+                const nextId = results[0].nextId;
 
-                res.json({
-                    ok: true,
-                    msg: 'Historia creada correctamente',
-                    history_id,
-                });
+                // Insertar la nueva historia clínica
+                dbConection().query(
+                    `
+                    INSERT INTO historias_clinicas (id, archivo, fechacreacion, fecha_ult_mod, estado, paciente, nroforms)
+                    VALUES (?, ?, ?, ?, ?, ?, ?);
+                    `,
+                    [nextId, historia.archivo, historia.fechacreacion, historia.fecha_ult_mod, historia.estado, historia.paciente, historia.nroforms],
+                    (error, results) => {
+                        if (error) throw error;
+
+                        // Obtener el unique_id generado para la historia clínica
+                        dbConection().query(
+                            `
+                            SELECT hc.unique_id  FROM historias_clinicas hc WHERE paciente = ?;
+                            `,
+                            [historia.paciente],  // Usamos el nextId que acabamos de insertar
+                            (error, results) => {
+                                if (error) throw error;
+
+                                const uniqueId = results[0].unique_id;
+
+                                // Devolver el unique_id generado
+                                res.json({
+                                    ok: true,
+                                    msg: 'Historia creada correctamente',
+                                    id: uniqueId, // Aquí devuelves el unique_id
+                                });
+                            }
+                        );
+                    }
+                );
             }
         );
-
     } catch (error) {
         console.error(error);
 
@@ -92,6 +121,7 @@ const crearHistoria = async (req, res) => {
         });
     }
 };
+
 
 const crearFormulario = async (req, res) => {
     const formulario = new FormModel(req.body);
@@ -181,9 +211,73 @@ const crearPaciente = async (req, res) => {
     }
 };
 
+const actualizarPaciente = async (req, res) => {
+    const paciente = new PacienteModel(req.body);
+
+    try {
+        // Verificar si el paciente con la cédula existe en la tabla `usuarios`
+        dbConection().query(
+            `SELECT COUNT(*) AS count FROM usuarios WHERE cedula = ?`,
+            [paciente.cedula],
+            (error, results) => {
+                if (error) throw error;
+
+                if (results[0].count === 0) {
+                    // Si la cédula no existe, devolver un error
+                    return res.status(404).json({
+                        ok: false,
+                        msg: 'Paciente no encontrado.'
+                    });
+                }
+
+                // Actualizar información en la tabla `usuarios`
+                dbConection().query(
+                    `
+                    UPDATE usuarios
+                    SET nombres = ?, email = ?, contacto = ?
+                    WHERE cedula = ?;
+                    `,
+                    [paciente.nombres, paciente.email, paciente.contacto, paciente.cedula],
+                    (error) => {
+                        if (error) throw error;
+
+                        // Actualizar información en la tabla `pacientes`
+                        dbConection().query(
+                            `
+                            UPDATE pacientes
+                            SET tipo_sangre = ?, sexo = ?, fecha_nac = ?, estado_civil = ?, lugar_nac = ?
+                            WHERE cedula = ?;
+                            `,
+                            [paciente.tipo_sangre, paciente.sexo, paciente.fechanac, paciente.estadoCivil, paciente.lugarnac, paciente.cedula],
+                            (error) => {
+                                if (error) throw error;
+
+                                res.json({
+                                    ok: true,
+                                    msg: 'Paciente actualizado correctamente',
+                                    type: 'patient'
+                                });
+                            }
+                        );
+                    }
+                );
+            }
+        );
+    } catch (error) {
+        console.error(error);
+
+        res.status(500).json({
+            ok: false,
+            msg: 'ERROR: ' + error.message
+        });
+    }
+};
+
+
 module.exports = {
     searchByCed,
     crearHistoria,
     crearFormulario,
-    crearPaciente
+    crearPaciente,
+    actualizarPaciente,
 } 

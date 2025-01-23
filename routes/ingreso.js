@@ -4,7 +4,7 @@
 */
 
 const { Router } = require("express");
-const { searchByCed, crearHistoria, crearFormulario, crearPaciente } = require("../controllers/ingreso");
+const { searchByCed, crearHistoria, crearFormulario, crearPaciente, actualizarPaciente } = require("../controllers/ingreso");
 const { body } = require("express-validator");
 const { validateFields } = require("../middlewares/validateFields");
 const router = Router();
@@ -20,5 +20,8 @@ router.post('/formulario', crearFormulario);
 
 // Crear un nuevo paciente
 router.post('/paciente', crearPaciente);
+
+// Actualizar un paciente
+router.put('/paciente', actualizarPaciente);
 
 module.exports = router;   
