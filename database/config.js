@@ -10,7 +10,7 @@ const pool = mysql.createPool({
     port: 25741,
     ssl: {
         rejectUnauthorized: true,
-        ca: fs.readFileSync('./certs/ca.pem'), // Ruta al certificado
+        ca: fs.readFileSync('/etc/secrets/ca.pem'), // Ruta al certificado (secrero) 
     },
     multipleStatements: true,
 });
