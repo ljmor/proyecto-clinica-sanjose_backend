@@ -23,11 +23,6 @@ app.use( express.static('public') ); // Aqui se montará todo el fronted de Reac
 // Lectura y parseo del body
 app.use( express.json() );
 
-console.log('Cargando configuración...');
-console.log('HOST:', process.env.HOST);
-console.log('USER:', process.env.USUARIO);
-console.log('DATABASE:', process.env.DATABASE);
-
 // Rutas de la app
 // Auth routes
 app.use('/api/auth', require('./routes/auth'));
