@@ -1,13 +1,20 @@
 var mysql = require('mysql');
+const fs = require('fs');
 
 const pool = mysql.createPool({
-    connectionLimit: 10, // Número máximo de conexiones en el pool
+    connectionLimit: 10,
     host: process.env.HOST,
-    user: process.env.USER,
+    user: process.env.USUARIO,
     password: process.env.PASSWORD,
     database: process.env.DATABASE,
-    multipleStatements: true  // Esto permite múltiples queries
+    port: 25741,
+    ssl: {
+        rejectUnauthorized: true,
+        ca: fs.readFileSync('./certs/ca.pem'), // Ruta al certificado
+    },
+    multipleStatements: true,
 });
+
 
 const dbConection = () => {
     return pool;

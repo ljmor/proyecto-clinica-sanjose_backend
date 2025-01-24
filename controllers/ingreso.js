@@ -14,11 +14,19 @@ const searchByCed = async (req, res) => {
             (error, results) => {
                 if (error) throw error;
 
-                // Si no se encuentra el usuario o el rol no es 'patient'
-                if (results[0].count <= 0 || results[0].rol !== 'patient') {
+                // Si no se encuentra el usuario 
+                if (results[0].count <= 0) {
                     return res.status(400).json({
                         ok: false,
                         msg: 'Paciente no encontrado.'
+                    });
+                }
+
+                // Si el usuario es personal hospitalario
+                if (results[0].rol !== 'patient') {
+                    return res.status(400).json({
+                        ok: false,
+                        msg: 'No se puede registrar personal hospitalario como pacientes.'
                     });
                 }
 
