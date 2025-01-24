@@ -100,9 +100,9 @@ const crearHistoria = async (req, res) => {
                         // Obtener el unique_id generado para la historia clínica
                         dbConection().query(
                             `
-                            SELECT hc.unique_id  FROM historias_clinicas hc WHERE paciente = ?;
+                            SELECT hc.unique_id  FROM historias_clinicas hc WHERE paciente = ? AND id = ?;
                             `,
-                            [historia.paciente],  // Usamos el nextId que acabamos de insertar
+                            [historia.paciente, nextId],  // Usamos el nextId que acabamos de insertar
                             (error, results) => {
                                 if (error) throw error;
 
