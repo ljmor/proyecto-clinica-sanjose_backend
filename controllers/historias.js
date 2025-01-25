@@ -36,6 +36,7 @@ const getHistoria = async (req, res) => {
                                 hc.id,
                                 hc.unique_id,
                                 hc.archivo,
+                                hc.nroforms,
                                 DATE_FORMAT(hc.fechacreacion, '%Y-%m-%d') AS fechacreacion,
                                 DATE_FORMAT(hc.fecha_ult_mod, '%Y-%m-%d') AS fecha_ult_mod,
                                 hc.estado
@@ -49,6 +50,7 @@ const getHistoria = async (req, res) => {
                                     id: history.id,
                                     unique_id: history.unique_id,
                                     archivo: history.archivo,
+                                    nroforms: history.nroforms,
                                     fechacreacion: history.fechacreacion,
                                     fecha_ult_mod: history.fecha_ult_mod,
                                     estado: history.estado,
